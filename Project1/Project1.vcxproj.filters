@@ -24,12 +24,18 @@
     <ClCompile Include="progBar.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="testFunktions.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Test.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="progBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="testFunktions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

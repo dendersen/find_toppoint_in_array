@@ -3,9 +3,9 @@
 #include "stdlib.h"
 #include <time.h>
 #include "progBar.c"
+#define testLength 1000
 
 long long* testARR;
-long long testLength = 1000;
 //				   ESC  [    3    8    ;    5    ;    <n>  m
 char red[10]   = { 0x1b,0x5B,0x33,0x38,0x3b,0x35,0x3b,0x31,0x6d,0 };
 char green[10] = { 0x1b,0x5B,0x33,0x38,0x3b,0x35,0x3b,0x32,0x6d,0 };
@@ -110,11 +110,22 @@ struct testResult RandomPlaceTest(long long (*findTop) (long long*, long long)) 
 }
 
 long long* speedTest(long long (*findTop) (long long*, long long), long long maxLength, long long dataPoints) {
-	long long* arr = malloc(maxLength * sizeof(long long));
-	long long* runTime = malloc(dataPoints * sizeof(long long));
+	long long* arr = malloc (maxLength * ((int) sizeof (long long)));
+	arr = malloc (1600000000);
+	long long* runTime = malloc(dataPoints * ((int) sizeof(long long)));
 	long long currentLength;
 	long long current;
-	if (arr == NULL || runTime == NULL) return NULL;
+	if(arr == NULL) {
+		printf ("malloc failed: %lldB\ndata array\n\n", maxLength * ((int) sizeof (long long)));
+		return NULL;
+	}
+	if(runTime == NULL) {
+		printf ("malloc failed: %lldB\ntime array\n\n", dataPoints * ((int) sizeof (long long)));
+		return NULL;
+	}
+	printf ("\n");
+	progBar (dataPoints, 0, 20);
+	printf (up);
 	for (long long i = 0; i < dataPoints; i++){
 		currentLength = linearInterpolation(maxLength, i, dataPoints);
 		runTime[i] = 0;
@@ -129,7 +140,7 @@ long long* speedTest(long long (*findTop) (long long*, long long), long long max
 		runTime[i] = max(current, runTime[i]);
 		
 		printf("\riteration time: %lldns\n", runTime[i]);
-		progBar(dataPoints, i, 20);
+		progBar(dataPoints, i + 1, 20);
 		printf(up);
 	}
 	free(arr);
