@@ -1,7 +1,7 @@
 #include "testFunktions.h"
 
-long long (*toBeTested [tests]) (long long*, long long) = {splitSearch};// , linearSearch, maxValue};
-char* testFile [tests] = {"splitSearch_result.csv"};// , "linear_result.csv", "maxValue_result.csv"};
+long long (*toBeTested [tests]) (long long*, long long) = {splitSearch , linearSearch, maxValue};
+char* testFile [tests] = {"splitSearch_result.csv" , "linear_result.csv", "maxValue_result.csv"};
 
 static long long maxValue (long long* arr, long long length) {
     long long max = 0;

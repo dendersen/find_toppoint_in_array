@@ -9,7 +9,14 @@ int main() {
     long long maxLength = 1000ll * 1000ll * 1000ll;
     for (int i = 0; i < tests; i++) {
         printf("\ntesting funktion: %d\n", i);
-        allTest (toBeTested [i]);
+        int succes = allTest (toBeTested [i]);
+        if(succes == -1) {
+            printf ("failed to alocate memory\n ending test early!");
+            return 1;
+        } else if(succes == 0) {
+            printf ("algorithm %d failed general testing\nskipping algorithm", i);
+            continue;
+        }
         printf("\ntesting speed\n");
         long long* speed = speedTest(toBeTested[i], maxLength, dataPoints);
         if (speed == NULL) {
