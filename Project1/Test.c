@@ -1,18 +1,27 @@
+#define RAND_MAX 2147483647
 #include <stdio.h>
 #include "Test.h"
 #include "stdlib.h"
 #include <time.h>
 #include "progBar.c"
 #define testLength 1000
-#define repeat 1000
+#define repeat 10
+#define consoleWidth 50
+
 long long* testARR;
 //				   ESC  [    3    8    ;    5    ;    <n>  m
-char red[10]   = { 0x1b,0x5B,0x33,0x38,0x3b,0x35,0x3b,0x31,0x6d,0 };
-char green[10] = { 0x1b,0x5B,0x33,0x38,0x3b,0x35,0x3b,0x32,0x6d,0 };
-//				  ESC  [    0    m
-char reset[5] = { 0x1b,0x5B,0x30,0x6d,0 };
-//                ESC  [    1    A 
-char up[5] =    { 0x1b,0x5B,0x31,0x41,0 };
+char red [10] =   {0x1b,0x5B,0x33,0x38,0x3b,0x35,0x3b,0x31,0x6d,0};
+char green [10] = {0x1b,0x5B,0x33,0x38,0x3b,0x35,0x3b,0x32,0x6d,0};
+char white [19] = {0x1b,0x5B,0x33,0x38,0x3b,0x35,0x3b,0x30,0x6d,
+				   0x1b,0x5B,0x34,0x38,0x3b,0x35,0x3b,0x37,0x6d,0};
+// ^			   ESC  [    4    8   ;    5    ;    <n>  m
+
+//				   ESC  [    0    m
+char reset [5] =  {0x1b,0x5B,0x30,0x6d,0};
+//                 ESC  [    1    A 
+char up [5]    =  {0x1b,0x5B,0x31,0x41,0};
+//                 ESC  [    0    K	
+char clear [5] =  {0x1b,0x5B,0x30,0x4B,0};
 struct testResult {
 	int correct;
 	long long expected;
@@ -113,6 +122,37 @@ struct testResult RandomPlaceTest(long long (*findTop) (long long*, long long)) 
 	return output;
 }
 
+#define arrayRising 0
+#define arrayFalling 1
+#define arrayRandom 2
+
+static int ArrayFill(long long* arr, long long length, int type) {
+	switch(type) {
+	case arrayRising:
+		for (long long i = 0; i < length; i++) {
+			arr[i] = i;
+		}
+	break;
+	case arrayFalling:
+		for (long long i = 0; i < length; i++) {
+			arr[i] = length - i - 1;
+		}
+	break;
+	case arrayRandom:
+		ArrayFill(arr, length, arrayRising);
+		for (long long i = 0; i < length; i++) {
+			int random = rand();
+			long long temp = arr[random];
+			arr[random] = arr[i];
+			arr[i] = temp;
+		}
+	break;
+	default:
+		printf("\narray filling error, invalid fill direction");
+		return 1;
+	}
+}
+
 long long* speedTest(long long (*findTop) (long long*, long long), long long maxLength, long long dataPoints) {
 	long long* arr = malloc (maxLength * ((int) sizeof (long long)));
 	long long* runTime = malloc(dataPoints * ((int) sizeof(long long)));
@@ -126,37 +166,72 @@ long long* speedTest(long long (*findTop) (long long*, long long), long long max
 		return NULL;
 	}
 	printf ("\n");
-	progBar (dataPoints, 0, 20);
+	long long progMax = dataPoints * repeat * 3;
+	progBar (progMax, 0, 50);
 	printf (up);
-	for (long long i = 0; i < dataPoints; i++){
-		long long current;
-		long long temp;
-		currentLength = linearInterpolation(maxLength, i, dataPoints);
-		runTime[i] = 0;
-		for(long long i = 0; i < repeat; i++) {
+	
+	printf ("\r%sfilling array please wait%s\r",white,reset);
+	ArrayFill(arr, maxLength, arrayRising);
+	for(long long i = 0; i < dataPoints; i++) {
+		long long current = 0;
+		long long temp = 0;
+		currentLength = linearInterpolation (maxLength, i, dataPoints);
+		runTime [i] = 0;
+		for(long long j = 0; j < repeat; j++) {
 			//linear test 0->length
-			temp = FrontToBack (findTop, arr, currentLength);
-			current = max (current, temp);
-			//linear test length->0
-			temp = BackToFront (findTop, arr, currentLength);
-			current = max (current, temp);
-			//random Test 
-			temp = RandomArray (findTop, arr, currentLength);
-			current = max (current, temp);
-			runTime [i] = current + runTime [i];
+			current = FrontToBack (findTop, arr, currentLength);
+			temp += current;
+			printf ("\r%siteration time: %lldns\n",clear, temp);
+			progBar (progMax, 1 + i * repeat + j + dataPoints, consoleWidth);
+			printf ("%s\r", up);
 		}
-		printf("\riteration time: %lldns\n", runTime[i]);
-		progBar(dataPoints, i + 1, 20);
-		printf(up);
+		runTime [i] = currentLength;
 	}
+	
+	printf ("\r%sfilling array please wait%s\r", white, reset);
+	ArrayFill (arr, maxLength, arrayFalling);
+	for(long long i = 0; i < dataPoints; i++) {
+		long long current = 0;
+		long long temp = 0;
+		currentLength = linearInterpolation (maxLength, i, dataPoints);
+		runTime [i] = 0;
+		for(long long j = 0; j < repeat; j++) {
+			//linear test length->0
+			current = BackToFront (findTop, arr, currentLength);
+			temp += current;
+			printf ("\r%siteration time: %lldns\n",clear, current);
+			progBar (progMax, 1 + i * repeat + j + dataPoints * repeat, consoleWidth);
+			printf ("%s\r", up);
+		}
+		runTime [i] = max (currentLength, runTime [i]);
+	}
+	
+	printf ("\r%sfilling array please wait%s\r", white, reset);
+	ArrayFill (arr, maxLength, arrayRandom);
+	for(long long i = 0; i < dataPoints; i++) {
+		long long current = 0;
+		long long temp = 0;
+		currentLength = linearInterpolation (maxLength, i, dataPoints);
+		runTime [i] = 0;
+		for(long long j = 0; j < repeat; j++) {
+			//random Test 
+			current = RandomArray (findTop, arr, currentLength);
+			temp += current;
+			printf ("\r%siteration time: %lldns\n",clear, current);
+			progBar (progMax, 1+ i * repeat + j + dataPoints * repeat * 2, consoleWidth);
+			printf ("%s\r", up);
+		}
+		runTime [i] = max (currentLength, runTime [i]);
+	}
+	
 	free(arr);
 	arr = malloc(dataPoints * sizeof(long long));
-	
 	if (arr != NULL) {
 		for (long long i = 0; i < dataPoints; i++) {
 			arr[i] = linearInterpolation(maxLength, i, dataPoints);
 		}
 	}
+
 	long long* out = malloc(dataPoints * 2 * sizeof(long long));
 	if (out == NULL) return NULL;
 	for (long long i = 0; i < dataPoints; i++) {
@@ -173,9 +248,6 @@ long long* speedTest(long long (*findTop) (long long*, long long), long long max
 static long long FrontToBack(long long (*findTop) (long long*, long long), long long* arr, long long currentLength) {
 	struct timespec startTime, stopTime;
 	long long top;
-	for (long long j = 0; j < currentLength; j++) {
-		arr[j] = j;
-	}
 	int ignore = timespec_get(&startTime, 1);
 	top = findTop(arr, currentLength);
 	ignore = timespec_get(&stopTime,1);
@@ -193,11 +265,6 @@ static long long FrontToBack(long long (*findTop) (long long*, long long), long 
 static long long BackToFront(long long (*findTop) (long long*, long long), long long* arr, long long currentLength) {
 	struct timespec startTime, stopTime;
 	long long top;
-	for (long long j = 0; j < currentLength / 2; j++) {
-		long long temp = arr [j];
-		arr[j] = arr [currentLength - 1 - j];
-		arr [currentLength - 1 - j] = temp;
-	}
 	int ignore = timespec_get(&startTime, 0);
 	top = findTop(arr, currentLength);
 	ignore = timespec_get(&stopTime, 0);
@@ -214,12 +281,6 @@ static long long BackToFront(long long (*findTop) (long long*, long long), long 
 static long long RandomArray(long long (*findTop) (long long*, long long), long long* arr, long long currentLength) {
 	struct timespec startTime, stopTime;
 	long long top;
-	for (long long j = 0; j < currentLength; j++) {
-		int random = rand() % currentLength;
-		long long temp = arr[j];
-		arr[j] = arr[random];
-		arr[random] = temp;
-	}
 	int  ignore = timespec_get(&startTime, 0);
 	top = findTop(arr, currentLength);
 	ignore = timespec_get(&stopTime, 0);
