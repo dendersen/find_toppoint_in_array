@@ -5,11 +5,7 @@ static void progBar(long long goal, long long progress, int width) {
 	char* full = "=";
 	char* empty = "-";
 	printf("\r[");
-	int filled = progress % (goal/3);
-	filled *= filled;
-	filled += (progress / (goal / 3)) * (progress / (goal / 3));
-	filled *= width;
-	filled /= goal * goal * goal;
+	int filled = (progress * width) / goal;
 	for(int i = 0; i < filled; i++) {
 		printf (full);
 	}

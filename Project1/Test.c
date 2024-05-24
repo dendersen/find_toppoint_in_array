@@ -176,7 +176,6 @@ long long* speedTest(long long (*findTop) (long long*, long long), long long max
 		long long current = 0;
 		long long temp = 0;
 		currentLength = linearInterpolation (maxLength, i, dataPoints);
-		runTime [i] = 0;
 		for(long long j = 0; j < repeat; j++) {
 			//linear test 0->length
 			current = FrontToBack (findTop, arr, currentLength);
@@ -185,7 +184,7 @@ long long* speedTest(long long (*findTop) (long long*, long long), long long max
 			progBar (progMax, 1 + i * repeat + j + dataPoints, consoleWidth);
 			printf ("%s\r", up);
 		}
-		runTime [i] = currentLength;
+		runTime [i] = temp;
 	}
 	
 	printf ("\r%sfilling array please wait%s\r", white, reset);
@@ -194,7 +193,6 @@ long long* speedTest(long long (*findTop) (long long*, long long), long long max
 		long long current = 0;
 		long long temp = 0;
 		currentLength = linearInterpolation (maxLength, i, dataPoints);
-		runTime [i] = 0;
 		for(long long j = 0; j < repeat; j++) {
 			//linear test length->0
 			current = BackToFront (findTop, arr, currentLength);
@@ -203,7 +201,7 @@ long long* speedTest(long long (*findTop) (long long*, long long), long long max
 			progBar (progMax, 1 + i * repeat + j + dataPoints * repeat, consoleWidth);
 			printf ("%s\r", up);
 		}
-		runTime [i] = max (currentLength, runTime [i]);
+		runTime [i] = max(temp, runTime [i]);
 	}
 	
 	printf ("\r%sfilling array please wait%s\r", white, reset);
@@ -212,7 +210,6 @@ long long* speedTest(long long (*findTop) (long long*, long long), long long max
 		long long current = 0;
 		long long temp = 0;
 		currentLength = linearInterpolation (maxLength, i, dataPoints);
-		runTime [i] = 0;
 		for(long long j = 0; j < repeat; j++) {
 			//random Test 
 			current = RandomArray (findTop, arr, currentLength);
@@ -221,7 +218,7 @@ long long* speedTest(long long (*findTop) (long long*, long long), long long max
 			progBar (progMax, 1+ i * repeat + j + dataPoints * repeat * 2, consoleWidth);
 			printf ("%s\r", up);
 		}
-		runTime [i] = max (currentLength, runTime [i]);
+		runTime[i] = max(temp, runTime[i]);
 	}
 	
 	free(arr);

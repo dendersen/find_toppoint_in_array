@@ -8,8 +8,8 @@
 
 int main() {
     SetThreadExecutionState (ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
-    long long dataPoints = 20;
-    long long maxLength = 100ll * 1000ll * 1000ll;
+    long long dataPoints = 25;
+    long long maxLength = 1000ll * 1000ll * 1000ll;
     for (int i = 0; i < tests; i++) {
         printf("\n\n\ntesting funktion: %d\n", i);
         int succes = allTest (toBeTested [i]);

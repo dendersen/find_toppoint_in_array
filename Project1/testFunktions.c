@@ -63,3 +63,4 @@ static long long boolMax (long long* arr, long long length) {
     }
     return top;
 }
+
